@@ -69,7 +69,7 @@ class FakemonAdder():
         # Updating the content of pokedex.ts
         newContent = f"""    {self.name.lower()}: {{
         num: 1,
-        species: \"{self.name.lower()}\",
+        name: \"{self.name.lower()}\",
         types: {self.types},
         genderRatio: {self.genderRatio},
         baseStats: {self.baseStats},
