@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "pokefinium-fakemon-adder"
+version = "0.1.0"
+description = "A fakemon adder for the Pokefinium Pokemon Showdown server and client."
+authors = ["harbar20 <harbar2021@gmail.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.6"
+PyGithub = "^0.5.1"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
