@@ -2,7 +2,7 @@ import json
 from github import Github
 import base64
 import requests
-from hashlib import sha1
+from hashlib import sha256
 
 # Getting config
 with open("config.json") as f:
@@ -11,17 +11,19 @@ with open("config.json") as f:
     gPass = config["gPass"]
 
 # Initializing Github object
-g = Github(gUser, gPass)
+g = Github(gPass)
 
 # Gets the SHA-1 value of a given filepath in the server repo
 def getSHA(filepath):
-    tree = requests.get("https://api.github.com/repos/koreanpanda345/Pokefinium-PS-Server/git/trees/master").json()
+    tree = requests.get("https://api.github.com/repos/koreanpanda345/Pokefinium-PS-Server/git/trees/bot-add-fakemon").json()
     firstDir = filepath.split("/")[0]
     # Finding the file sha
     for path in tree["tree"]:
         if (path["path"] == firstDir):
             firstUrl = path["url"]
             firstDirTree = requests.get(firstUrl).json()
+            with open("test.json", "w") as f:
+                json.dump(firstDirTree, f, indent=4)
             targetFile = filepath.split("/")[1]
             for path2 in firstDirTree["tree"]:
                 if (path2["path"] == targetFile):
@@ -29,9 +31,9 @@ def getSHA(filepath):
 
 # Calculates the new SHA-1 value of the updated contents
 def genSHA(data):
-    s = sha1()
-    s.update(("blob %u\0" % len(data)).encode("utf-8"))
-    s.update(data.encode("utf-8"))
+    s = sha256()
+    newData = data.replace(f"\r\n", f"\n")
+    s.update(f"blob {len(data)}\0{newData}".encode("utf-8"))
     return s.hexdigest()
 
 class FakemonAdder():
@@ -80,7 +82,6 @@ class FakemonAdder():
     }},
 }};
         """
-        print(f"New fakemon: {newContent}")
         pokedexContents = pokedexContents.replace("};", newContent)
 
         # Getting the original content of learnsets.ts
@@ -103,7 +104,7 @@ class FakemonAdder():
         formatsContents = base64.b64decode(formatsBlob.content).decode("utf-8")
         # Updating the content of formats-data.ts
         newContent = f"""    {self.name.lower()}: {{
-            isNonStandard: \"Cap\",
+            isNonstandard: \"Custom\",
             tier: \"CAP\"
     }},
 }}; 
@@ -119,11 +120,11 @@ class FakemonAdder():
         newFormatsSha = genSHA(formatsContents)
         newPokedexSha = genSHA(pokedexContents)
         # Committing the updates to the learnsets.ts file
-        learnsetCommit = serverRepo.update_file("data/learnsets.ts", f"Adding {self.name}'s learnset as requested by {discordUser}.", learnsetsContents, newLearnsetsSha, branch="bot-add-fakemon")["commit"]
+        learnsetCommit = serverRepo.update_file("data/learnsets.ts", f"Adding {self.name}'s learnset as requested by {discordUser}.", learnsetsContents, learnsetsSha, branch="bot-add-fakemon")["commit"]
         # Committing the updates to the formats-data.ts file
-        formatsCommit = serverRepo.update_file("data/formats-data.ts", f"Adding {self.name}'s format info as requested by {discordUser}.", formatsContents, newFormatsSha, branch="bot-add-fakemon")["commit"]
+        formatsCommit = serverRepo.update_file("data/formats-data.ts", f"Adding {self.name}'s format info as requested by {discordUser}.", formatsContents, formatsSha, branch="bot-add-fakemon")["commit"]
         # Committing the updates to the pokedex.ts file
-        pokedexCommit = serverRepo.update_file("data/pokedex.ts", f"Adding {self.name} as requested by {discordUser}.", pokedexContents, newPokedexSha, branch="bot-add-fakemon")["commit"]
+        pokedexCommit = serverRepo.update_file("data/pokedex.ts", f"Adding {self.name} as requested by {discordUser}.", pokedexContents, pokedexSha, branch="bot-add-fakemon")["commit"]
         # Making the PR
         serverPR = serverRepo.create_pull(title=title, body=body, head="bot-add-fakemon", base="master")
         print(f"New PR made: {serverPR.html_url}")
@@ -134,28 +135,28 @@ class FakemonAdder():
         # TODO
 
 #Testing baby let's get it
-name = "RickAstley"
+name = "Gorouchu"
 spritesDict = {}
 abilitiesDict = {
-    "0": "Gluttony",
-    "1": "Thick Fat",
-    "H": "Iron Fist"
+    "0": "Static",
+    "1": "Volt Absorb",
+    "H": "Inner Focus"
 }
 learnsetDict = {}
-types = ["Fire", "Water"]
+types = ["Electric", "Fighting"]
 genderRatioDict = {"M": 0.5, "F": 0.5}
 baseStats = {
-    "hp": 5,
-    "atk": 5,
-    "def": 5,
-    "spa": 5,
-    "spd": 5,
-    "spe": 5
+    "hp": 60,
+    "atk": 105,
+    "def": 55,
+    "spa": 80,
+    "spd": 85,
+    "spe": 110
 }
-height = 0.5
-weight = 60
-mainColor = "Red"
-evolution = "Richard Buttockstley"
-eggGroups = ["Fat"]
+height = 1
+weight = 40
+mainColor = "Orange"
+evolution = ""
+eggGroups = ["Field", "Fairy"]
 adder = FakemonAdder(name, spritesDict, abilitiesDict, learnsetDict, types, eggGroups, baseStats, height, weight, mainColor, evolution, genderRatioDict)
-adder.add("harbar20#9389")
+adder.add("xSilas#9434")
