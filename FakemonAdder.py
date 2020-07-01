@@ -11,7 +11,7 @@ with open("config.json") as f:
     gPass = config["gPass"]
 
 # Initializing Github object
-g = Github(gPass)
+g = Github(gUser, gPass)
 
 # Gets the SHA-1 value of a given filepath in the server repo
 def getSHA(filepath):
@@ -22,8 +22,6 @@ def getSHA(filepath):
         if (path["path"] == firstDir):
             firstUrl = path["url"]
             firstDirTree = requests.get(firstUrl).json()
-            with open("test.json", "w") as f:
-                json.dump(firstDirTree, f, indent=4)
             targetFile = filepath.split("/")[1]
             for path2 in firstDirTree["tree"]:
                 if (path2["path"] == targetFile):
@@ -57,6 +55,7 @@ class FakemonAdder():
         """
         # Getting the Pokefinium Pokemon Showdown Server repository
         serverRepo = g.get_repo("koreanpanda345/Pokefinium-PS-Server")
+        currentNum = with open("currentnum.txt") as f: f.read()
 
         """
         This part onwards is where we edit the code in the server files and commit it to the `bot-add-fakemon` branch.
@@ -68,7 +67,7 @@ class FakemonAdder():
         pokedexContents = base64.b64decode(pokedexBlob.content).decode("utf-8")
         # Updating the content of pokedex.ts
         newContent = f"""    {self.name.lower()}: {{
-        num: 1,
+        num: {currentNum},
         name: \"{self.name.lower()}\",
         types: {self.types},
         genderRatio: {self.genderRatio},
@@ -83,6 +82,8 @@ class FakemonAdder():
 }};
         """
         pokedexContents = pokedexContents.replace("};", newContent)
+        # Updating the current number for the next Pokemon
+        with open("currentnum.txt", "w") as f: f.write(currentNum+1)
 
         # Getting the original content of learnsets.ts
         learnsetsSha = getSHA("data/learnsets.ts")
